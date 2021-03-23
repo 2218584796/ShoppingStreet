@@ -1,0 +1,144 @@
+ref如果是绑定在组件中的，那么通过this.$refs.refname获取到的是一个组件对象
+ref如果是绑定在普通的元素中的，那么通过this.$refs.refname获取到的是一个元素对象
+
+什么时候使用.native
+当我们需要监听一个组件的原生事件时，必须给对应的事件加上.native修饰符，才能进行监听
+
+无论是否设置click:true,button都可以点击
+<button @click="btnClick">哈哈哈哈</button>
+
+必须设置click：true，div才可以监听点击
+<div @click="divClick">嘻嘻嘻</div>
+
+发送数据请求
+goods:{
+        'pop':{page:0,list:[]},
+        'new':{page: 0,list: []},
+        'sell':{page: 0,list:[]}
+      }
+
+1.在home.js中封装getHomeGoods(type,page)
+2.在Home.vue中，又在methods中getHomeGoods(type)
+3.调用getHomeGoods('pop')/getHomeGoods('new')/getHomeGoods('sell')
+page:动态的获取page
+
+获取到数据：res
+this.goods[type].list.push(...res.data.list)
+this.goods[type].page += 1
+
+goods:{
+        'pop':{page:1,list:[30个]},
+        'new':{page: 1,list: [30个]},
+        'sell':{page: 1,list:[30个]}
+      }
+
+对商品进行展示
+封装GoodList.vue组件
+pros.goods -> list[30]
+v-for goods -> GoodListItem[30]
+GoodListItem(组件) -> GoodItem(数据)
+
+封装GoodListItem.vue组件
+props：gooditem
+gooditem：取出数据，并且使用正确的div、span、img基本标签进行展示
+
+对滚动进行重构：Better-scroll
+1.在index.html中使用Better-Scroll
+const bscroll = new BScroll(el,{})
+
+注意：wrapper -> content -> 很多内容
+1.监听滚动
+probeType：0/1/2(滚动的时候才监听)/3（只要是滚动就会监听，包含滚动的惯性）
+bscroll.on('scroll',{position} => {})
+
+2.上拉加载
+pullUpLoad：true
+bscroll.on('pullingUp',() => {})
+
+3.click:false
+button:可以监听点击
+div：可以点击
+
+在Vue项目中使用Better-Scroll
+在profile.vue简单演示
+对Better-Scroll进行封装： Scroll.vue
+Home.vue和Scroll.vue之间进行通信
+  Home.vue将probeType设置为3
+  Scroll.vue需要通过$emit,实时将事件发送到Home.vue
+
+
+对backtop组件进行封装
+
+如何监听组件的点击
+不可以直接监听back-top的点击，必须添加修饰：.native
+
+回到顶部
+scroll对象，scroll.scrollTo(x,y,time)
+this.$refs.scroll.scrollTo(0,0,500)
+
+backTop组件的显示和隐藏
+isShow：false
+监听滚动，拿到滚动的位置：
+-position > 1000 -> isShow : true
+isShow = -position.y > 1000
+
+解决首页中Batter-Scroll可滚动区域问题
+batter-scroll在决定有多少区域可以滚动的，是根据scrollerHeight属性决定
+在首页中，刚开始计算scrollerHeight的时候没有将图片计算在内的，所以计算出来的高度是错误的
+后来图片加载进来之后有了新高度，但是scrollerHeight并没有更新，所以滚动出现问题
+
+如何解决问题 ->GoodsListItem
+监听每一张图片是否加载完成，只要有一张加载完成，就执行refresh()
+如何监听图片加载完成
+原生的js监听方式：img.onload = function(){}
+vue中监听$load="方法"，然后调用scroll的refresh()
+
+如何将GoodsListItem.vue中的事件传入到Home.vue中
+因为涉及到非父子之间的通信，所以这里选择事件总线
+bus -> 总线
+main.js -> Vue.prototype.$bus = new Vue()
+GoodsListItem -> this.$bus.$emit('事件名称'，'参数') 发送事件
+Home -> this.$bus.$on('事件名称',() => {
+  this.$refs.scroll.scroll.refresh()
+})
+
+对于refresh频繁调用问题，进行防抖操作
+防抖：debounce
+节流：throttle
+debounce(func,delay){
+      let timer = null
+      return function (...args) {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(() => {
+          func.apply(this,args)
+        },delay)
+      }
+    }
+
+
+!!!tabControl的吸顶效果
+1.获取到tabControl的offsettop
+必须知道滚到多少距离时才会有吸顶效果，这时候就需要获取tabControl的offsettop
+但是，如果直接在mounted中获取tabControl的offsettop，那么值是不正确的
+如何获取正确的值？
+1.监听HomeSwiper中img的加载完成
+2.加载完成后，发出事件，在Home.vue中获取正确的值
+补充：
+为了不让HomeSwiper多次发出事件，可以使用isLoad的变量进行状态记录
+
+监听滚动，动态的改变tabControl的样式
+问题动态的改变tabControl的样式时，会出现两个问题
+问题一：下面的商品会突然上移
+问题二：tabControl虽然设置了fixed，但是也随着Better-Scroll一起滚出去了
+
+其他方案解决停留问题
+在最上面多复制一层tab-control组件对象，利用它来实现停留效果
+当用户滚到一定位置时tab-control显示出来，小于指定位置时隐藏
+
+
+让home保持原来的状态
+让home不要随意销毁掉:keep-alive
+让home保持原来的位置
+
+
+

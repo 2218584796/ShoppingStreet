@@ -1,0 +1,22 @@
+问题：如何将时间戳转化成时间格式的字符串
+时间戳：1535694719（秒）
+1.将时间戳转成data对象(date对象中为毫秒 要撑 1000)
+const date = new Date(1535694719 * 1000)
+
+2.将date转成对应字符串
+date.getYear() + date.getMonth() + 1
+
+date -> formatString(太常用)
+fmt.format(date,'yyyy-MM-dd hh:mm:ss')
+
+
+detail中：positionY和主题中的值进行对比
+//条件成立：this.currentIndex = i
+            //条件一：防止赋值过于频繁
+            // 条件二：(i < length-1 && positionY >= this.themeTopYs[i] && positionY <
+            // this.themeTopYs[i+1])|| (i === length-1 && positionY >= this.themeTopYs[i])
+            //条件1：(i < length-1 && positionY >= this.themeTopYs[i] && positionY <
+            // this.themeTopYs[i+1])
+            //判断区间：在0 和某个数字之间（i < length-1）
+            //条件2：(i === length-1 && positionY >= this.themeTopYs[i])
+            //判断大于等于：i === length - 1
